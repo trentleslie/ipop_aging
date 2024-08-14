@@ -29,7 +29,7 @@ sync_gitlab_to_github:
     - git fetch --all --prune
     - git checkout -B main origin/main
     - |
-      if ! git pull --rebase github main; then
+      if ! git rebase github/main; then
         echo "Conflicts detected. Attempting to resolve..."
         git status
         git diff --name-only --diff-filter=U | while read file; do
@@ -37,12 +37,13 @@ sync_gitlab_to_github:
           git checkout --theirs "$file"
           git add "$file"
         done
-        if git rebase --continue; then
-          echo "Rebase successful after resolving conflicts."
-        else
+        git rebase --continue -m "Resolve conflicts with GitHub version"
+        if [ $? -ne 0 ]; then
           echo "Failed to complete rebase after resolving conflicts."
           git rebase --abort
           exit 1
+        else
+          echo "Rebase successful after resolving conflicts."
         fi
       fi
     - |

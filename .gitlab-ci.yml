@@ -29,17 +29,12 @@ sync_gitlab_to_github:
     - git fetch --all --prune
     - git checkout -B main origin/main
     - |
-      if ! git rebase github/main; then
-        echo "Rebase failed. Attempting merge strategy..."
-        git rebase --abort
-        git merge --no-commit --no-ff github/main
-        if [ $? -ne 0 ]; then
-          echo "Merge conflicts detected. Manual intervention required."
-          git merge --abort
-          exit 1
-        fi
-        git commit -m "Merge GitHub changes"
+      if ! git merge --allow-unrelated-histories --no-commit --no-ff github/main; then
+        echo "Merge conflicts detected. Manual intervention required."
+        git merge --abort
+        exit 1
       fi
+    - git commit -m "Merge GitHub changes" || echo "No changes to commit"
     - |
       if git push github main; then
         echo "Successfully pushed to GitHub."

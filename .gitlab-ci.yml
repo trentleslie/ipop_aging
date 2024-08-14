@@ -30,21 +30,15 @@ sync_gitlab_to_github:
     - git checkout -B main origin/main
     - |
       if ! git rebase github/main; then
-        echo "Conflicts detected. Attempting to resolve..."
-        git status
-        git diff --name-only --diff-filter=U | while read file; do
-          echo "Resolving conflict in $file"
-          git checkout --theirs "$file"
-          git add "$file"
-        done
-        git commit -m "Resolve conflicts with GitHub version"
-        if ! git rebase --continue; then
-          echo "Failed to complete rebase after resolving conflicts."
-          git rebase --abort
+        echo "Rebase failed. Attempting merge strategy..."
+        git rebase --abort
+        git merge --no-commit --no-ff github/main
+        if [ $? -ne 0 ]; then
+          echo "Merge conflicts detected. Manual intervention required."
+          git merge --abort
           exit 1
-        else
-          echo "Rebase successful after resolving conflicts."
         fi
+        git commit -m "Merge GitHub changes"
       fi
     - |
       if git push github main; then

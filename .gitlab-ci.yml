@@ -34,7 +34,7 @@ sync_gitlab_to_github:
         echo "Failed to push to GitHub. There might be an issue with permissions or network."
         exit 1
       fi
-    - git checkout main
+    - git checkout -B main origin/main  # This line ensures you checkout the remote main branch explicitly
     - git branch -D temp_branch
   only:
     - main

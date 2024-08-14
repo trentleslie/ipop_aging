@@ -37,8 +37,8 @@ sync_gitlab_to_github:
           git checkout --theirs "$file"
           git add "$file"
         done
-        git rebase --continue -m "Resolve conflicts with GitHub version"
-        if [ $? -ne 0 ]; then
+        git commit -m "Resolve conflicts with GitHub version"
+        if ! git rebase --continue; then
           echo "Failed to complete rebase after resolving conflicts."
           git rebase --abort
           exit 1

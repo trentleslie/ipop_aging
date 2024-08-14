@@ -22,7 +22,7 @@ sync_gitlab_to_github:
     - git config --global user.email "$GITHUB_USER_EMAIL"
     - git config --global user.name "Trent Leslie"
     - git remote remove github || true
-    - git remote add github git@github.com:trentleslie/sparse-proteomic-prediction-of-common-and-rare-diseases.git
+    - git remote add github git@github.com:trentleslie/ipop_aging.git
   script:
     - python --version
     - git fetch --all --prune

@@ -21,27 +21,20 @@ sync_gitlab_to_github:
     - ssh-keyscan -H github.com >> ~/.ssh/known_hosts
     - git config --global user.email "$GITHUB_USER_EMAIL"
     - git config --global user.name "Trent Leslie"
-    - git config --global pull.rebase true
     - git remote remove github || true
     - git remote add github git@github.com:trentleslie/sparse-proteomic-prediction-of-common-and-rare-diseases.git
   script:
     - python --version
     - git fetch --all --prune
-    - git checkout -B main origin/main
+    - git checkout -B temp_branch origin/main
     - |
-      if ! git merge --allow-unrelated-histories --no-commit --no-ff github/main; then
-        echo "Merge conflicts detected. Manual intervention required."
-        git merge --abort
+      if git push -f github temp_branch:main; then
+        echo "Successfully pushed to GitHub main branch."
+      else
+        echo "Failed to push to GitHub. There might be an issue with permissions or network."
         exit 1
       fi
-    - git commit -m "Merge GitHub changes" || echo "No changes to commit"
-    - |
-      if git push github main; then
-        echo "Successfully pushed to GitHub."
-      else
-        echo "Failed to push to GitHub. There might be new changes on GitHub."
-        git pull --rebase github main
-        git push github main
-      fi
+    - git checkout main
+    - git branch -D temp_branch
   only:
     - main

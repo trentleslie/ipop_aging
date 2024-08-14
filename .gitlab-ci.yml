@@ -5,7 +5,7 @@ variables:
   GITLAB_USER_EMAIL: trent.leslie@phenomehealth.org
   GITHUB_USER_EMAIL: trentleslie@gmail.com
   GIT_STRATEGY: clone
-  GIT_DEPTH: 0  # Changed to 0 to fetch all history
+  GIT_DEPTH: 0
 
 sync_gitlab_to_github:
   stage: sync
@@ -32,10 +32,26 @@ sync_gitlab_to_github:
       if ! git pull --rebase github main; then
         echo "Conflicts detected. Attempting to resolve..."
         git status
-        git diff --name-only --diff-filter=U | xargs git checkout --theirs
-        git add .
-        git rebase --continue
+        git diff --name-only --diff-filter=U | while read file; do
+          echo "Resolving conflict in $file"
+          git checkout --theirs "$file"
+          git add "$file"
+        done
+        if git rebase --continue; then
+          echo "Rebase successful after resolving conflicts."
+        else
+          echo "Failed to complete rebase after resolving conflicts."
+          git rebase --abort
+          exit 1
+        fi
       fi
-    - git push github main
+    - |
+      if git push github main; then
+        echo "Successfully pushed to GitHub."
+      else
+        echo "Failed to push to GitHub. There might be new changes on GitHub."
+        git pull --rebase github main
+        git push github main
+      fi
   only:
     - main
